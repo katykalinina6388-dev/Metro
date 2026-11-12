@@ -8,14 +8,19 @@ const auto = args[3] !== 'manual';
 const sim = new M.Sim(G, { startTime: start, incidents: inc, assistant: true, autoSwitch: auto, regulate: true });
 const dt = 0.25, steps = Math.round(hours * 3600 / dt);
 let radio = 0, crashes = [], maxStuck = 0, stuckInfo = '', lastLog = -1, attention = 0, passred = 0, thrown = 0;
-process.on('exit', () => { if (!auto) console.log('switches thrown by the scripted player:', thrown); });
+const reasons = {};
+process.on('exit', () => { console.log('attention by reason:', JSON.stringify(reasons)); if (!auto) console.log('switches thrown by the scripted player:', thrown); });
 const stuck = new Map();
 const T0 = Date.now();
 for (let i = 0; i < steps; i++) {
   sim.step(dt);
   for (const m of sim.outbox) {
     if (m.type === 'radio') radio++; if (m.type === 'crash') crashes.push(M.fmtClock(m.t, true) + ' ' + m.text);
-    if (m.type === 'attention') { attention++; if (m.reason === 'signal') { sim.order(sim.trains[m.num - 1], 'passred'); passred++; } }
+    if (m.type === 'attention') {
+      attention++; reasons[m.reason] = (reasons[m.reason] || 0) + 1;
+      if (m.reason === 'signal') { sim.order(sim.trains[m.num - 1], 'passred'); passred++; }
+      if (m.reason === 'depotfull') { const r = sim.order(sim.trains[m.num - 1], 'siding'); if (!r.ok || r.clips[0] === 'd.no_siding') sim.order(sim.trains[m.num - 1], 'cancel'); }
+    }
   }
   sim.outbox.length = 0;
   // «игрок»: неисправные составы — в депо

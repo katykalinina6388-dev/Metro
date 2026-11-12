@@ -24,12 +24,17 @@ const check = (name, ok, info) => { console.log((ok ? 'OK   ' : 'FAIL ') + name 
   check('проезд запрещающего на 20 км/ч — остановка перед хвостом', ev1.length === 0 && f.v === 0, 'расстояние до хвоста ' + gap(sim, f, lead).toFixed(1) + ' м, аварий ' + ev1.length);
 }
 // 2. Проезд запрещающего сигнала с приказом повысить скорость — столкновение.
+//    Нужен разгон: берём пару поездов, между которыми не меньше 180 м (иначе машинист успевает остановиться).
 {
-  const sim = mk(); run(sim, 120);
-  const lead = sim.trains.find(t => t.mode === 'service' && t.phase === 'move' && t.v > 12 && t.route[t.hi].e.kind === 'main');
-  M.cmd.run(sim, 'маршрут ' + lead.num + ' стоп', null);
-  run(sim, 900);
-  const f = follower(sim, lead);
+  let sim, lead, f;
+  for (let seed = 5; seed < 40 && !(f && gap(sim, f, lead) >= 180); seed++) {
+    sim = new M.Sim(G, { startTime: 8 * 3600, incidents: 0, assistant: false, autoSwitch: true, seed }); run(sim, 100 + seed * 7);
+    lead = sim.trains.find(t => t.mode === 'service' && t.phase === 'move' && t.v > 12 && t.route[t.hi].e.kind === 'main');
+    M.cmd.run(sim, 'маршрут ' + lead.num + ' стоп', null);
+    run(sim, 900);
+    f = follower(sim, lead);
+  }
+  console.log('     пара для проверки: маршрут ' + f.num + ' за маршрутом ' + lead.num + ', ' + gap(sim, f, lead).toFixed(0) + ' м');
   M.cmd.run(sim, 'маршрут ' + f.num + ' проследуйте запрещающий сигнал', null);
   M.cmd.run(sim, 'маршрут ' + f.num + ' скорость не более шестидесяти', null);
   const ev = run(sim, 600, e => e.length > 0);

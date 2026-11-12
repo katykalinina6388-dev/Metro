@@ -5,38 +5,40 @@
 
   // kind: psd — мелкого заложения с береговыми платформами и стеклянными платформенными дверями;
   //       closed — «горизонтальный лифт»; column — колонная; vault — односводчатая; surface — наземная.
-  // res / job — условные веса «жилой» и «деловой/пересадочной» нагрузки для матрицы корреспонденций.
+  // res / job — условные веса «жилой» и «деловой/пересадочной» нагрузки для матрицы корреспонденций
+  // (подобраны по опубликованной загрузке станций с добавкой на пересадки).
   M.LINE = {
     name: 'Невско-Василеостровская линия',
     num: 3,
     color: '#1fae5a',
     stations: [
-      { id: 'begovaya', name: 'Беговая', short: 'Беговая', lon: 30.2021, lat: 59.9873, depth: 22, plat: 'side', kind: 'psd', res: 1.0, job: 0.25 },
-      { id: 'zenit', name: 'Зенит', short: 'Зенит', lon: 30.2114, lat: 59.9714, depth: 22, plat: 'side', kind: 'psd', res: 0.08, job: 0.16 },
-      { id: 'primorskaya', name: 'Приморская', short: 'Приморская', lon: 30.2345, lat: 59.9485, depth: 71, plat: 'island', kind: 'column', res: 1.3, job: 0.45 },
-      { id: 'vasileostrovskaya', name: 'Василеостровская', short: 'Василеостровская', lon: 30.2782, lat: 59.9426, depth: 64, plat: 'island', kind: 'closed', res: 1.1, job: 0.9 },
-      { id: 'gostiny', name: 'Гостиный двор', short: 'Гостиный двор', lon: 30.3334, lat: 59.9340, depth: 56, plat: 'island', kind: 'closed', res: 0.5, job: 2.4,
+      { id: 'begovaya', name: 'Беговая', short: 'Беговая', lon: 30.2021, lat: 59.9873, depth: 17, plat: 'side', kind: 'psd', res: 1.15, job: 0.3 },
+      { id: 'zenit', name: 'Зенит', short: 'Зенит', lon: 30.2114, lat: 59.9714, depth: 17, plat: 'side', kind: 'psd', res: 0.15, job: 0.35 },
+      { id: 'primorskaya', name: 'Приморская', short: 'Приморская', lon: 30.2345, lat: 59.9485, depth: 68, plat: 'island', kind: 'column', res: 1.7, job: 0.5 },
+      { id: 'vasileostrovskaya', name: 'Василеостровская', short: 'Василеостровская', lon: 30.2782, lat: 59.9426, depth: 64, plat: 'island', kind: 'closed', res: 1.5, job: 1.1 },
+      { id: 'gostiny', name: 'Гостиный двор', short: 'Гостиный двор', lon: 30.3334, lat: 59.9340, depth: 56, plat: 'island', kind: 'closed', res: 0.4, job: 2.9,
         xfer: [{ line: 2, name: 'Невский проспект', color: '#2a7fff' }] },
-      { id: 'mayakovskaya', name: 'Маяковская', short: 'Маяковская', lon: 30.3549, lat: 59.9315, depth: 51, plat: 'island', kind: 'closed', res: 0.5, job: 2.0,
+      { id: 'mayakovskaya', name: 'Маяковская', short: 'Маяковская', lon: 30.3549, lat: 59.9315, depth: 51, plat: 'island', kind: 'closed', res: 0.4, job: 2.2,
         xfer: [{ line: 1, name: 'Площадь Восстания', color: '#e5383b' }] },
-      { id: 'pan', name: 'Площадь Александра Невского', short: 'Пл. А. Невского', lon: 30.3851, lat: 59.9243, depth: 54, plat: 'island', kind: 'closed', res: 0.5, job: 1.2,
+      { id: 'pan', name: 'Площадь Александра Невского', short: 'Пл. А. Невского', lon: 30.3851, lat: 59.9243, depth: 54, plat: 'island', kind: 'closed', res: 0.5, job: 1.3,
         xfer: [{ line: 4, name: 'Пл. А. Невского-2', color: '#f39c12' }] },
-      { id: 'elizarovskaya', name: 'Елизаровская', short: 'Елизаровская', lon: 30.4237, lat: 59.8967, depth: 62, plat: 'island', kind: 'closed', res: 0.7, job: 0.5 },
-      { id: 'lomonosovskaya', name: 'Ломоносовская', short: 'Ломоносовская', lon: 30.4418, lat: 59.8773, depth: 65, plat: 'island', kind: 'closed', res: 1.1, job: 0.6 },
-      { id: 'proletarskaya', name: 'Пролетарская', short: 'Пролетарская', lon: 30.4703, lat: 59.8652, depth: 72, plat: 'island', kind: 'vault', res: 0.8, job: 0.45 },
-      { id: 'obukhovo', name: 'Обухово', short: 'Обухово', lon: 30.4577, lat: 59.8487, depth: 62, plat: 'island', kind: 'vault', res: 0.6, job: 0.4 },
-      { id: 'rybatskoe', name: 'Рыбацкое', short: 'Рыбацкое', lon: 30.5010, lat: 59.8310, depth: 0, plat: 'side', kind: 'surface', res: 1.2, job: 0.35 }
+      { id: 'elizarovskaya', name: 'Елизаровская', short: 'Елизаровская', lon: 30.4237, lat: 59.8967, depth: 62, plat: 'island', kind: 'closed', res: 0.75, job: 0.4 },
+      { id: 'lomonosovskaya', name: 'Ломоносовская', short: 'Ломоносовская', lon: 30.4418, lat: 59.8773, depth: 65, plat: 'island', kind: 'closed', res: 1.1, job: 0.4 },
+      { id: 'proletarskaya', name: 'Пролетарская', short: 'Пролетарская', lon: 30.4703, lat: 59.8652, depth: 71, plat: 'island', kind: 'column', res: 0.6, job: 0.3 },
+      { id: 'obukhovo', name: 'Обухово', short: 'Обухово', lon: 30.4577, lat: 59.8487, depth: 62, plat: 'island', kind: 'vault', res: 0.3, job: 0.15 },
+      { id: 'rybatskoe', name: 'Рыбацкое', short: 'Рыбацкое', lon: 30.5010, lat: 59.8310, depth: 0, plat: 'side', kind: 'surface', res: 1.05, job: 0.3 }
     ],
     // Путевое развитие. side: -1 — со стороны Беговой, +1 — со стороны Рыбацкого.
+    // xover — пошёрстный съезд (оборот с заездом за съезд), siding — оборотный тупик между главными путями.
     features: [
-      { t: 'termLo', st: 0 },                                      // перекрёстный съезд и два длинных оборотных тупика
-      { t: 'scissors', st: 2, side: -1 },                          // съезд со стороны «Зенита»
-      { t: 'scissors', st: 3, side: -1 },                          // съезд западнее станции (конечная в 1967–1979 гг.)
-      { t: 'siding', st: 5, side: 1, n: 1, ssv: 'ССВ на линию 1' }, // трёхстрелочный оборотный тупик и ветка на 1-ю линию
-      { t: 'siding', st: 6, side: 1, n: 1, ssv: 'ССВ на линию 4' }, // тупик и ветка на 4-ю линию
-      { t: 'siding', st: 8, side: 1, n: 1 },                       // тупик для оборота и ночного отстоя
-      { t: 'scissors', st: 10, side: 1 },                          // съезд со стороны «Рыбацкого»
-      { t: 'termHi', st: 11, depot: 34 }                           // перекрёстный съезд, пути в депо «Невское»
+      { t: 'termLo', st: 0 },                                       // перекрёстный съезд и два длинных оборотных тупика
+      { t: 'xover', st: 2, side: -1 },                              // пошёрстный съезд со стороны «Зенита» (конечная в 1979–2018 гг.)
+      { t: 'xover', st: 3, side: -1 },                              // пошёрстный съезд западнее станции (конечная в 1967–1979 гг.)
+      { t: 'siding', st: 5, side: 1, n: 1, ssv: 'ССВ на линию 1' }, // трёхстрелочный оборотный тупик, он же ветка на 1-ю линию
+      { t: 'siding', st: 6, side: 1, n: 2, ssv: 'ССВ на линию 4' }, // шестистрелочный тупик: 3-й путь — ветка на 4-ю линию, 4-й — тупик
+      { t: 'siding', st: 8, side: 1, n: 1 },                        // тупик для оборота и ночного отстоя
+      { t: 'xover', st: 10, side: 1 },                              // пошёрстный съезд со стороны «Рыбацкого» (конечная в 1981–1984 гг.)
+      { t: 'termHi', st: 11, depot: 38 }                            // перекрёстный съезд, пути в депо «Невское»
     ],
     depotName: 'ТЧ-5 «Невское»',
     fleet: 38,

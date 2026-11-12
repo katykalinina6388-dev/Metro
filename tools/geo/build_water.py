@@ -184,10 +184,12 @@ def build():
     print("sea km2 %.1f; probes (sea, land) = %s" % (sea.area / 1e6, check_sea(sea)))
     raw = collect_polygons(bm)
     print("water polygon sources:", len(raw))
-    cover = unary_union([sea] + [make_valid(g) if not g.is_valid else g for _, g in raw])
-    raw += waterway_polygons(cover, bm)
     items = finalize(SEA_NAME, sea, bm)
     for n, g in raw:
+        items += finalize(n, g, bm)
+    # named waterways without a polygon (checked against the simplified polygons)
+    cover = unary_union([p for _, p in items])
+    for n, g in waterway_polygons(cover, bm):
         items += finalize(n, g, bm)
     items.sort(key=lambda it: -it[1].area)
     polys = []

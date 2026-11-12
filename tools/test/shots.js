@@ -30,6 +30,7 @@ const fs = require('fs');
   if (want('depot')) { await page.evaluate(() => { const b = M.game.G.depotBox, g = M.game; g.render.flyTo((b[0][0] + b[2][0]) / 2 - 120, (b[0][1] + b[2][1]) / 2, 1.9, true); }); await shot('07-depot'); }
   if (want('rybatskoe')) { await fly('({x: M.game.G.st[11].x + 120, y: M.game.G.st[11].y + 60})', 1.6); await shot('08-rybatskoe'); }
   if (want('stationPanel')) { await page.evaluate(() => { M.game.ui.select({ type: 'station', st: 8 }); const s = M.game.G.st[8]; M.game.render.flyTo(s.x + 150, s.y + 150, 1.5, true); }); await shot('09-lomonosovskaya'); }
+  if (want('pan')) { await page.evaluate(() => { M.game.ui.select({ type: 'station', st: 6 }); const s = M.game.G.st[6]; M.game.render.flyTo(s.x + s.tx * 260, s.y + s.ty * 260, 1.25, true); }); await shot('11-pl-nevskogo'); }
   if (want('cmd')) {
     await page.evaluate(() => { const g = M.game; g.ui.command('Маршрут пять, доложите обстановку'); g.ui.command('маршрут 7, следуйте в депо'); g.ui.command('маршрут 3 оборот по станции Ломоносовская'); g.ui.showTab('trains'); g.render.fit(true); });
     await page.waitForTimeout(1500); await shot('10-commands');

@@ -178,6 +178,10 @@
           ids.push('S:' + st + ':' + (3 + j));
         }
         mkSwitch(N2, lead, es[0], es[1], { zone: st });
+        if (ssv) {
+          const p3 = es[0].poly.p, last = p3[p3.length - 1], far = midPts(st, side * (235 + SID + 230), side * (235 + SID + 240), -85);
+          G.decor.push({ pts: M.hermite(last, dirOf(p3.slice(-2)), far[0], dirOf([last, far[0]])), label: ssv });
+        }
       }
       const alts = ids.map(id => [{ stop: id, reverse: true }]);
       G.turn[st][arrK] = [
@@ -194,23 +198,30 @@
       }
     }
 
-    function midScissors(st, side) {
+    // Пошёрстный съезд: со II пути (меньший пикет) на I путь (больший пикет) — оба перевода пошёрстные
+    // для правильного направления движения, воспользоваться им можно только после смены направления.
+    function trailing(st, o1, o2) {
+      const b1 = swCut('B', st, o1, 1), a2 = swCut('A', st, o2, -1);
+      const e = link(b1, tanAt('B', st, o1, 1), a2, tanAt('A', st, o2, 1), { kind: 'conn', zone: st, lin: sv.A[st] + (o1 + o2) / 2 });
+      b1.pend.minus = e; a2.pend.minus = e;
+    }
+    function midScissors(st, side, single) {
       const o1 = side > 0 ? X1 : -X2, o2 = side > 0 ? X2 : -X1;
-      scissors(st, o1, o2);
+      if (single) trailing(st, o1, o2); else scissors(st, o1, o2);
       if (side < 0) {
-        // оборот через съезд перед станцией (со стороны Беговой)
+        // оборот прибывших со стороны Рыбацкого: за съезд по II пути, смена кабины, по съезду на I путь
         const s0 = sv.B[st] + o1 - 10 - SID;
         cutAt('B', s0); cutAt('B', s0 + SID);
         ranges.B.push({ s0, s1: s0 + SID, kind: 'rev', st });
         pendStops.push({ id: 'R:' + st + ':B', k: 'B', s: s0 + SID / 2, st, name: 'за съездом ст. ' + stName(st) });
-        G.turn[st].A = [{ stop: P(st, 'B'), st, alight: 'all', board: true, reverse: true, term: true, setDir: 'B' }];
+        if (!single) G.turn[st].A = [{ stop: P(st, 'B'), st, alight: 'all', board: true, reverse: true, term: true, setDir: 'B' }];
         G.turn[st].B = [{ stop: P(st, 'B'), st, alight: 'all' }, { stop: 'R:' + st + ':B', reverse: true }, { stop: P(st, 'A'), st, board: true, term: true, setDir: 'A' }];
       } else {
         const s0 = sv.A[st] + o2 + 10;
         cutAt('A', s0); cutAt('A', s0 + SID);
         ranges.A.push({ s0, s1: s0 + SID, kind: 'rev', st });
         pendStops.push({ id: 'R:' + st + ':A', k: 'A', s: s0 + SID / 2, st, name: 'за съездом ст. ' + stName(st) });
-        G.turn[st].B = [{ stop: P(st, 'A'), st, alight: 'all', board: true, reverse: true, term: true, setDir: 'A' }];
+        if (!single) G.turn[st].B = [{ stop: P(st, 'A'), st, alight: 'all', board: true, reverse: true, term: true, setDir: 'A' }];
         G.turn[st].A = [{ stop: P(st, 'A'), st, alight: 'all' }, { stop: 'R:' + st + ':A', reverse: true }, { stop: P(st, 'B'), st, board: true, term: true, setDir: 'B' }];
       }
     }
@@ -218,7 +229,7 @@
     let sRoot = 0;
     for (const f of feats) {
       const st = f.st;
-      if (f.t === 'scissors') midScissors(st, f.side);
+      if (f.t === 'scissors' || f.t === 'xover') midScissors(st, f.side, f.t === 'xover');
       else if (f.t === 'siding') centerSiding(st, f.side, f.n || 1, f.ssv);
       else if (f.t === 'termLo') {
         scissors(st, -X2, -X1);
@@ -286,7 +297,7 @@
       const deep = LINE.stations[i].depth > 40 && LINE.stations[i + 1].depth > 40;
       const dip = deep ? LINE.dip : (LINE.stations[i].depth > 15 && LINE.stations[i + 1].depth > 15 ? 4 : 0);
       const g = ((z1 - z0) * 6 * u * (1 - u) - dip * Math.PI * Math.sin(2 * Math.PI * u)) / D;
-      return M.clamp(g, -0.04, 0.04);
+      return M.clamp(g, -0.05, 0.05);
     }
     for (const k of ['A', 'B']) {
       const arr = cuts[k].sort((x, y) => x.s - y.s), full = [];

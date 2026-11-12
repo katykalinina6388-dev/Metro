@@ -300,7 +300,9 @@
       const S = M.LINE.stations, info = S[st], sim = this.g.sim, G = sim.G, z = G.zones[st], X = sim.stn[st];
       const f = M.LINE.features.filter(x => x.st === st), nb = d => S[M.clamp(st + d, 0, S.length - 1)].short;
       const desc = f.map(x => x.t === 'termLo' ? 'Перекрёстный съезд и два оборотных тупика за станцией.' : x.t === 'termHi' ? 'Перекрёстный съезд, оборотные тупики и соединительный путь в депо «Невское».'
-        : x.t === 'scissors' ? 'Перекрёстный съезд со стороны ст. ' + nb(x.side) + '.' : 'Оборотный тупик (3 путь) со стороны ст. ' + nb(x.side) + (x.ssv ? '; ' + x.ssv + '.' : '.')).join(' ') || 'Путевого развития нет — оборот невозможен.';
+        : x.t === 'scissors' ? 'Перекрёстный съезд со стороны ст. ' + nb(x.side) + '.'
+          : x.t === 'xover' ? 'Пошёрстный съезд со стороны ст. ' + nb(x.side) + ': оборот поездов, прибывших со стороны ст. ' + nb(-x.side) + ', с заездом за съезд.'
+            : (x.n > 1 ? 'Два пути между главными со стороны ст. ' + nb(x.side) + ' (3-й и 4-й) для оборота и отстоя' : 'Оборотный тупик (3 путь) со стороны ст. ' + nb(x.side)) + (x.ssv ? '; ' + x.ssv + '.' : '.')).join(' ') || 'Путевого развития нет — оборот невозможен.';
       let h = '<div class="objhead"><span class="m3">3</span><h2>' + esc(info.name) + '</h2><span class="spacer"></span><button data-act="showSt">Показать</button></div>';
       h += '<div class="kv"><span>Тип станции</span><div>' + KIND[info.kind] + (info.depth ? ', глубина ' + info.depth + ' м' : '') + '</div>';
       if (info.xfer) h += '<span>Пересадка</span><div>' + info.xfer.map(x => '<span class="xf" style="background:' + x.color + '">' + x.line + '</span>' + esc(x.name)).join(' ') + '</div>';

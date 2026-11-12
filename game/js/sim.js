@@ -238,11 +238,22 @@
       if (!tr.plan.length) this.genNext(tr);
       const step = this.resolveStep(tr);
       tr.phase = 'move'; tr.waitT = 0; tr.reported = false;
-      if (!step) { tr.noRoute = true; tr.retryT = 20; tr.stopIdx = -1; if (!tr.depotFullSaid) { tr.depotFullSaid = true; this.radio(tr, ['d.depot_full']); } return; }
+      if (!step) { tr.noRoute = true; tr.retryT = 20; tr.stopIdx = -1; if (!tr.depotFullSaid) { tr.depotFullSaid = true; this.radio(tr, ['d.depot_full']); this.emit('attention', { num: tr.num, reason: 'depotfull' }); } return; }
       tr.depotFullSaid = false;
       if (step.stop !== tr.curStop) tr.atStop = false;
-      if (!this.planRoute(tr, step.stop)) { tr.noRoute = true; tr.retryT = 8; tr.stopIdx = -1; return; }
-      tr.noRoute = false;
+      if (!this.planRoute(tr, step.stop)) {
+        // путь закрыт (например, неисправной стрелкой) — пробуем другой тупик из возможных
+        if (step.alts) {
+          for (const a of step.alts) {
+            if (a[0].stop === step.stop || !this.planRoute(tr, a[0].stop)) continue;
+            const ns = a.map(s => Object.assign({}, s)); ns[0].alts = step.alts;
+            tr.plan.splice(0, 1, ...ns); tr.noRoute = false; tr.noRouteSaid = false;
+            return;
+          }
+        }
+        tr.noRoute = true; tr.retryT = 8; tr.stopIdx = -1; return;
+      }
+      tr.noRoute = false; tr.noRouteSaid = false;
     }
     planRoute(tr, stopId) {
       const stop = this.G.stops[stopId], base = Math.max(tr.hi, tr.resEnd);
@@ -374,7 +385,7 @@
             // путь есть только в обратном направлении — машинист переходит в другую кабину
             const back = tr.route[tr.ti];
             if (this.findPath({ e: back.e, d: -back.d }, this.G.stops[step.stop].e)) { tr.phase = 'rev'; tr.timer = REV_T; tr.revThen = 'start'; return; }
-            if (!tr.reported) { tr.reported = true; this.radio(tr, ['d.diverted']); this.emit('attention', { num: tr.num, reason: 'noroute' }); }
+            if (!tr.noRouteSaid) { tr.noRouteSaid = true; this.radio(tr, ['d.diverted']); this.emit('attention', { num: tr.num, reason: 'noroute' }); }
           }
         }
       }

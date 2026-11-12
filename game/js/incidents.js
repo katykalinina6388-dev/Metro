@@ -37,7 +37,7 @@
         sim.crowdAcc = 0;
         for (let i = 0; i < sim.NS; i++) {
           const w = sim.waitDir(i), tot = w[0] + w[1], st = sim.stn[i];
-          if (tot > 2400 && sim.t - st.crowdT > 1800) {
+          if (tot > 2600 && sim.t - st.crowdT > 3600) {
             st.crowdT = sim.t;
             const g = sim.G.st[i];
             add(sim, { type: 'crowd', st: i, title: 'Переполнение платформы', text: 'Ст. ' + S(i).short + ': на платформе ' + Math.round(tot) + ' человек.', until: sim.t + 600, x: g.x, y: g.y });
