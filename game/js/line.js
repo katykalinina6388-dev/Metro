@@ -1,0 +1,80 @@
+/* Данные линии: станции, путевое развитие, параметры пассажиропотока. */
+(function (root) {
+  'use strict';
+  const M = root.M;
+
+  // kind: psd — мелкого заложения с береговыми платформами и стеклянными платформенными дверями;
+  //       closed — «горизонтальный лифт»; column — колонная; vault — односводчатая; surface — наземная.
+  // res / job — условные веса «жилой» и «деловой/пересадочной» нагрузки для матрицы корреспонденций.
+  M.LINE = {
+    name: 'Невско-Василеостровская линия',
+    num: 3,
+    color: '#1fae5a',
+    stations: [
+      { id: 'begovaya', name: 'Беговая', short: 'Беговая', lon: 30.2021, lat: 59.9873, depth: 22, plat: 'side', kind: 'psd', res: 1.0, job: 0.25 },
+      { id: 'zenit', name: 'Зенит', short: 'Зенит', lon: 30.2114, lat: 59.9714, depth: 22, plat: 'side', kind: 'psd', res: 0.08, job: 0.16 },
+      { id: 'primorskaya', name: 'Приморская', short: 'Приморская', lon: 30.2345, lat: 59.9485, depth: 71, plat: 'island', kind: 'column', res: 1.3, job: 0.45 },
+      { id: 'vasileostrovskaya', name: 'Василеостровская', short: 'Василеостровская', lon: 30.2782, lat: 59.9426, depth: 64, plat: 'island', kind: 'closed', res: 1.1, job: 0.9 },
+      { id: 'gostiny', name: 'Гостиный двор', short: 'Гостиный двор', lon: 30.3334, lat: 59.9340, depth: 56, plat: 'island', kind: 'closed', res: 0.5, job: 2.4,
+        xfer: [{ line: 2, name: 'Невский проспект', color: '#2a7fff' }] },
+      { id: 'mayakovskaya', name: 'Маяковская', short: 'Маяковская', lon: 30.3549, lat: 59.9315, depth: 51, plat: 'island', kind: 'closed', res: 0.5, job: 2.0,
+        xfer: [{ line: 1, name: 'Площадь Восстания', color: '#e5383b' }] },
+      { id: 'pan', name: 'Площадь Александра Невского', short: 'Пл. А. Невского', lon: 30.3851, lat: 59.9243, depth: 54, plat: 'island', kind: 'closed', res: 0.5, job: 1.2,
+        xfer: [{ line: 4, name: 'Пл. А. Невского-2', color: '#f39c12' }] },
+      { id: 'elizarovskaya', name: 'Елизаровская', short: 'Елизаровская', lon: 30.4237, lat: 59.8967, depth: 62, plat: 'island', kind: 'closed', res: 0.7, job: 0.5 },
+      { id: 'lomonosovskaya', name: 'Ломоносовская', short: 'Ломоносовская', lon: 30.4418, lat: 59.8773, depth: 65, plat: 'island', kind: 'closed', res: 1.1, job: 0.6 },
+      { id: 'proletarskaya', name: 'Пролетарская', short: 'Пролетарская', lon: 30.4703, lat: 59.8652, depth: 72, plat: 'island', kind: 'vault', res: 0.8, job: 0.45 },
+      { id: 'obukhovo', name: 'Обухово', short: 'Обухово', lon: 30.4577, lat: 59.8487, depth: 62, plat: 'island', kind: 'vault', res: 0.6, job: 0.4 },
+      { id: 'rybatskoe', name: 'Рыбацкое', short: 'Рыбацкое', lon: 30.5010, lat: 59.8310, depth: 0, plat: 'side', kind: 'surface', res: 1.2, job: 0.35 }
+    ],
+    // Путевое развитие. side: -1 — со стороны Беговой, +1 — со стороны Рыбацкого.
+    features: [
+      { t: 'termLo', st: 0 },                                      // перекрёстный съезд и два длинных оборотных тупика
+      { t: 'scissors', st: 2, side: -1 },                          // съезд со стороны «Зенита»
+      { t: 'scissors', st: 3, side: -1 },                          // съезд западнее станции (конечная в 1967–1979 гг.)
+      { t: 'siding', st: 5, side: 1, n: 1, ssv: 'ССВ на линию 1' }, // трёхстрелочный оборотный тупик и ветка на 1-ю линию
+      { t: 'siding', st: 6, side: 1, n: 1, ssv: 'ССВ на линию 4' }, // тупик и ветка на 4-ю линию
+      { t: 'siding', st: 8, side: 1, n: 1 },                       // тупик для оборота и ночного отстоя
+      { t: 'scissors', st: 10, side: 1 },                          // съезд со стороны «Рыбацкого»
+      { t: 'termHi', st: 11, depot: 34 }                           // перекрёстный съезд, пути в депо «Невское»
+    ],
+    depotName: 'ТЧ-5 «Невское»',
+    fleet: 38,
+    lineSpeed: 58,           // км/ч, наибольшая скорость на перегоне
+    dip: 6                   // м, «провал» профиля между станциями глубокого заложения
+  };
+
+  // Суммарный пассажиропоток линии, посадок в час, по времени суток (час → значение).
+  M.DEMAND_CURVE = [
+    [0, 5000], [0.4, 1500], [0.6, 0], [5.55, 0], [5.75, 3500], [6.5, 15000], [7.5, 47000], [8.4, 66000],
+    [9.5, 50000], [10.5, 35000], [12, 30000], [14, 32000], [16, 41000], [17, 56000], [18.2, 66000],
+    [19.5, 50000], [20.5, 34000], [21.5, 24000], [22.5, 16000], [23.5, 9000], [24, 5000]
+  ];
+
+  // Рекомендуемое число поездов на линии по времени суток (час → поездов).
+  M.TRAINS_CURVE = [
+    [0, 10], [0.5, 5], [1.0, 0], [5.3, 0], [5.6, 10], [6.3, 18], [7.0, 28], [7.6, 34], [9.6, 34], [10.5, 24],
+    [15.5, 24], [16.5, 30], [17.2, 34], [19.6, 34], [20.5, 24], [21.5, 18], [23.0, 12], [24, 10]
+  ];
+
+  M.curveAt = function (curve, hour) {
+    hour = ((hour % 24) + 24) % 24;
+    for (let i = 1; i < curve.length; i++) {
+      if (hour <= curve[i][0]) {
+        const a = curve[i - 1], b = curve[i];
+        return a[1] + (b[1] - a[1]) * (hour - a[0]) / ((b[0] - a[0]) || 1);
+      }
+    }
+    return curve[curve.length - 1][1];
+  };
+
+  M.periodName = function (t) {
+    const h = ((t % 86400) + 86400) % 86400 / 3600;
+    if (h >= 0.6 && h < 5.55) return 'ночь — метро закрыто';
+    if (h >= 7 && h < 10) return 'утренний час пик';
+    if (h >= 16.5 && h < 19.75) return 'вечерний час пик';
+    if (h >= 22 || h < 0.6) return 'поздний вечер';
+    if (h < 7) return 'раннее утро';
+    return 'межпиковое время';
+  };
+})(typeof window !== 'undefined' ? window : globalThis);

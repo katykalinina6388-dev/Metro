@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Диспетчер метро — Невско-Василеостровская линия</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%231fae5a'/%3E%3Ctext x='16' y='22' font-size='18' font-family='Arial' font-weight='700' text-anchor='middle' fill='%23fff'%3E3%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="brand"><span class="m3">3</span><span class="bt">Поездной диспетчер<small>Невско-Василеостровская линия</small></span></div>
+    <div id="clockbox"><div id="clock">00:00:00</div><div id="period"></div></div>
+    <div class="speed">
+      <button id="bPause" title="Пауза (P)">❚❚</button>
+      <button id="bX1" title="Реальное время: 1 секунда = 1 секунда">1 с = 1 с</button>
+      <button id="bX12" title="Ускоренное время: 1 игровая минута = 5 секунд">1 мин = 5 с</button>
+    </div>
+    <div id="stats">
+      <div><span>Поездов на линии</span><b id="sLine">0</b><i id="sRec"></i></div>
+      <div><span>На платформах</span><b id="sWait">0</b></div>
+      <div><span>В поездах</span><b id="sBoard">0</b></div>
+      <div><span>Перевезено</span><b id="sDel">0</b></div>
+      <div><span>Среднее ожидание</span><b id="sAvg">—</b></div>
+    </div>
+    <div class="spacer"></div>
+    <button id="bAsst" title="Помощник сам выпускает поезда на линию и убирает их в депо по рекомендуемому графику">Помощник графика: выкл</button>
+    <button id="bHelp">Справка</button>
+    <button id="bMenu">Меню</button>
+  </header>
+  <canvas id="strip"></canvas>
+  <div id="main">
+    <canvas id="map"></canvas>
+    <div id="mapbtns">
+      <button id="bFit" title="Показать всю линию">Вся линия</button>
+      <button id="bZoomIn" title="Крупнее">+</button>
+      <button id="bZoomOut" title="Мельче">−</button>
+      <button id="bFollow" title="Следить за выбранным поездом (F)">Следить</button>
+      <button id="bDepot" title="Показать депо">Депо</button>
+    </div>
+    <div id="hint"></div>
+    <div id="toasts"></div>
+    <aside id="side">
+      <div class="tabs">
+        <button data-tab="trains" class="on">Поезда</button>
+        <button data-tab="obj">Объект</button>
+        <button data-tab="inc">ЧП <span id="incCount"></span></button>
+      </div>
+      <div class="tab on" id="tab-trains"></div>
+      <div class="tab" id="tab-obj"></div>
+      <div class="tab" id="tab-inc"></div>
+    </aside>
+  </div>
+  <footer id="radio">
+    <div id="log"></div>
+    <div id="cmdrow">
+      <button id="bMic" title="Удерживайте, чтобы говорить (или клавишу Пробел)"><span class="dot"></span><span id="micLabel">Эфир</span></button>
+      <input id="cmd" type="text" autocomplete="off" spellcheck="false" placeholder="Команда текстом: «маршрут 12, следуйте в депо» — Enter">
+      <button id="bSend">Передать</button>
+      <span id="heard"></span>
+    </div>
+  </footer>
+</div>
+
+<div id="menu" class="overlay on">
+  <div class="card wide">
+    <div class="title"><span class="m3 big">3</span><div><h1>Поездной диспетчер</h1><p>Петербургский метрополитен · Невско-Василеостровская линия · Беговая — Рыбацкое</p></div></div>
+    <div class="grid">
+      <section>
+        <h3>Время</h3>
+        <label class="row">Ход времени
+          <div class="seg" data-set="speed"><button data-v="1">Реальное: 1 с = 1 с</button><button data-v="12">Ускоренное: 1 мин = 5 с</button></div>
+        </label>
+        <label class="row">Начало смены
+          <div class="timepick"><input id="setHour" type="number" min="0" max="23" value="7"><span>:</span><input id="setMin" type="number" min="0" max="59" step="5" value="0">
+            <div class="presets"><button data-t="5.5">05:30 открытие</button><button data-t="7.5">07:30 утренний пик</button><button data-t="12">12:00 день</button><button data-t="17.5">17:30 вечерний пик</button><button data-t="23">23:00 ночь</button></div>
+          </div>
+        </label>
+        <h3>Движение</h3>
+        <label class="row">Нештатные ситуации
+          <div class="seg" data-set="incidents"><button data-v="0">Выкл.</button><button data-v="1">Редко</button><button data-v="2">Иногда</button><button data-v="3">Часто</button></div>
+        </label>
+        <label class="row">Стрелки и маршруты
+          <div class="seg" data-set="autoSwitch"><button data-v="1">Автоматика</button><button data-v="0">Ручное управление</button></div>
+        </label>
+        <label class="row">Помощник графика
+          <div class="seg" data-set="assistant"><button data-v="0">Выкл.</button><button data-v="1">Вкл.</button></div>
+        </label>
+        <label class="row">Выдержка интервала на конечных
+          <div class="seg" data-set="regulate"><button data-v="1">Вкл.</button><button data-v="0">Выкл.</button></div>
+        </label>
+      </section>
+      <section>
+        <h3>Голосовая связь</h3>
+        <label class="row">Распознавание речи
+          <div class="seg" data-set="engine"><button data-v="vosk">Встроенное (офлайн)</button><button data-v="web">Системное (онлайн)</button><button data-v="off">Выкл.</button></div>
+        </label>
+        <label class="row">Микрофон
+          <div class="seg" data-set="micMode"><button data-v="ptt">По кнопке (рация)</button><button data-v="open">Постоянно слушать</button></div>
+        </label>
+        <label class="row">Голоса машинистов
+          <div class="seg" data-set="voice"><button data-v="clips">Встроенные</button><button data-v="tts">Системный синтезатор</button><button data-v="off">Выкл.</button></div>
+        </label>
+        <label class="row">Громкость связи
+          <input id="setVol" type="range" min="0" max="100" value="80">
+        </label>
+        <div id="micStatus" class="note"></div>
+        <p class="note">Команды можно отдавать голосом, текстом или кнопками в карточке поезда. Формат: «Маршрут двенадцать, следуйте до станции Ломоносовская». Полный список — в «Справке».</p>
+      </section>
+    </div>
+    <div class="actions">
+      <button id="bStart" class="primary">Начать смену</button>
+      <button id="bResume" class="hidden">Продолжить</button>
+      <button id="bHelp2">Справка</button>
+    </div>
+  </div>
+</div>
+
+<div id="help" class="overlay">
+  <div class="card wide">
+    <h2>Справка</h2>
+    <div class="grid">
+      <section>
+        <h3>Приказы машинистам</h3>
+        <p>Говорите или пишите: <b>«Маршрут &lt;номер&gt;, &lt;приказ&gt;»</b>. Если поезд выбран на карте, номер можно не называть.</p>
+        <table class="cmds">
+          <tr><td>отправляйтесь</td><td>отправиться со станции; из отстоя — выйти на линию</td></tr>
+          <tr><td>стоп · остановитесь · экстренное торможение</td><td>немедленная остановка</td></tr>
+          <tr><td>продолжайте движение</td><td>отменить остановку</td></tr>
+          <tr><td>следуйте до станции &lt;название&gt;</td><td>станция становится конечной для этого поезда</td></tr>
+          <tr><td>оборот по станции &lt;название&gt;</td><td>то же; возможно только там, где есть съезд или тупик</td></tr>
+          <tr><td>следуйте в депо</td><td>высадка на «Рыбацком» и заход в депо</td></tr>
+          <tr><td>следуйте в тупик [станции &lt;название&gt;]</td><td>постановка в отстой в тупике</td></tr>
+          <tr><td>выходите на линию</td><td>выход из депо или тупика</td></tr>
+          <tr><td>высадите пассажиров</td><td>высадка на ближайшей станции, дальше — без пассажиров</td></tr>
+          <tr><td>задержитесь [на станции &lt;название&gt;]</td><td>стоять на станции до команды «отправляйтесь»</td></tr>
+          <tr><td>станцию &lt;название&gt; проследуйте без остановки</td><td>пропуск станции</td></tr>
+          <tr><td>скорость не более &lt;20…70&gt;</td><td>ограничение скорости</td></tr>
+          <tr><td>отмена ограничения скорости</td><td></td></tr>
+          <tr><td>проследуйте запрещающий сигнал</td><td><b class="warn">опасно:</b> поезд идёт без защиты АЛС-АРС, не быстрее 20 км/ч</td></tr>
+          <tr><td>доложите обстановку</td><td>где поезд и сколько в нём пассажиров</td></tr>
+          <tr><td>отмена</td><td>снять все приказы, работать по графику</td></tr>
+          <tr><td>всем поездам стоп · всем продолжать движение</td><td>циркулярный приказ</td></tr>
+        </table>
+      </section>
+      <section>
+        <h3>Управление</h3>
+        <table class="cmds">
+          <tr><td>Колесо мыши</td><td>масштаб: от всей линии до отдельного вагона</td></tr>
+          <tr><td>Перетаскивание</td><td>перемещение карты</td></tr>
+          <tr><td>Щелчок</td><td>выбор поезда, станции; перевод стрелки</td></tr>
+          <tr><td>Shift + щелчок по стрелке</td><td>аварийный перевод замкнутой стрелки</td></tr>
+          <tr><td>Пробел (удерживать)</td><td>выход в эфир — говорить в микрофон</td></tr>
+          <tr><td>Enter</td><td>строка текстовой команды</td></tr>
+          <tr><td>P · F · Esc</td><td>пауза · следить за поездом · меню</td></tr>
+        </table>
+        <h3>Как устроена линия</h3>
+        <p>I путь ведёт к «Рыбацкому», II — к «Беговой». Поезда защищает АЛС-АРС: состав не въедет на занятый или не замкнутый в маршруте участок. При автоматике стрелки переводятся сами; в ручном режиме поезд остановится у светофора и запросит маршрут — нужная стрелка мигает голубым.</p>
+        <p>Оборот возможен на «Беговой» и «Рыбацком» (тупики за станцией), у «Маяковской», «Пл. Александра Невского» и «Ломоносовской» (тупик со стороны «Рыбацкого»), у «Приморской», «Василеостровской» и «Обухово» (съезды).</p>
+        <p>Депо «Невское» — за «Рыбацким». Состав, готовый к выходу, выглядит как на линии; на техобслуживании — <b class="y">жёлтый</b>; неисправный — <b class="r">красный</b>.</p>
+        <p>Столкновение или сход возможны только при грубой ошибке: приказ проследовать запрещающий сигнал на занятый путь, повышение скорости такому поезду, аварийный перевод стрелки перед поездом или под ним.</p>
+      </section>
+    </div>
+    <div class="actions"><button id="bHelpClose" class="primary">Закрыть</button></div>
+  </div>
+</div>
+
+<div id="modal" class="overlay"><div class="card"><h2 id="modalTitle"></h2><p id="modalText"></p><div class="actions" id="modalBtns"></div></div></div>
+
+<script src="js/util.js"></script>
+<script src="js/line.js"></script>
+<script src="data/geo.js"></script>
+<script src="js/track.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/incidents.js"></script>
+<script src="js/phrases.js"></script>
+<script src="js/commands.js"></script>
+<script src="js/radio.js"></script>
+<script src="js/mic.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

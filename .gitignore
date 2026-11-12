@@ -1,0 +1,7 @@
+dist/
+node_modules/
+__pycache__/
+*.pyc
+tools/geo/cache/
+tools/geo/scratch/
+.hoplite/
